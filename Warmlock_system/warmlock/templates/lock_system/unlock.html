@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h2>Face Recognition</h2>
+        <video id="video" width="400" height="300" autoplay></video>
+        <button id="capture" class="btn btn-primary mt-2">Capture</button>
+        <canvas id="canvas" width="400" height="300" style="display:none;"></canvas>
+    </div>
+    <div class="col-md-6">
+        <h2>Voice Recognition</h2>
+        <button id="record" class="btn btn-primary">Record</button>
+        <p id="status">Press and hold to record your unlock phrase</p>
+        <audio id="audio" controls style="display:none;"></audio>
+        <button id="unlock" class="btn btn-success mt-3" disabled>Unlock</button>
+    </div>
+</div>
+<div id="result" class="mt-4"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 这里添加JavaScript代码处理摄像头和麦克风访问
+// 以及将捕获的数据发送到服务器的逻辑
+</script>
+{% endblock %}

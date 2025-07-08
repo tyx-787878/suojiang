@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Register New User</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Unlock Phrase</label>
+        <input type="text" name="unlock_phrase" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Face Image</label>
+        <input type="file" name="face_image" class="form-control" accept="image/*" capture="user" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Voice Sample</label>
+        <input type="file" name="voice_sample" class="form-control" accept="audio/*" capture="microphone" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>
+{% endblock %}

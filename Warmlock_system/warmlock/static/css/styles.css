@@ -1,0 +1,19 @@
+body {
+    padding-top: 20px;
+}
+.video-container {
+    margin-bottom: 20px;
+}
+.result-box {
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 5px;
+}
+.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}

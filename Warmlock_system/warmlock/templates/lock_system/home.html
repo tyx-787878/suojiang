@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <p>配置验证页面</p>
+    <p>静态文件测试: <img src="{% static 'images/test.png' %}" alt="测试图片"></p>
+    <p>媒体文件URL前缀: {{ MEDIA_URL }}</p>
+</body>
+</html>
