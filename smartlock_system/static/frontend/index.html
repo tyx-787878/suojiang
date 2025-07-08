@@ -1,0 +1,758 @@
+<!-- static/frontend/index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能门锁系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        danger: '#F53F3F',
+                        warning: '#FF7D00',
+                        success: '#00B42A',
+                        dark: '#1D2129',
+                        light: '#F2F3F5'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .transition-custom {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .bg-glass {
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+            }
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 text-dark min-h-screen flex flex-col">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-md fixed w-full z-50 transition-all duration-300" id="mainNav">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-lock text-primary text-2xl"></i>
+                <span class="text-xl font-bold text-primary">智能门锁系统</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#dashboard" class="text-gray-700 hover:text-primary transition-colors">控制面板</a>
+                <a href="#face-recognition" class="text-gray-700 hover:text-primary transition-colors">人脸识别</a>
+                <a href="#voice-recognition" class="text-gray-700 hover:text-primary transition-colors">声纹识别</a>
+                <a href="#settings" class="text-gray-700 hover:text-primary transition-colors">系统设置</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="logoutBtn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                    <i class="fa fa-sign-out mr-2"></i>退出
+                </button>
+                <button class="md:hidden text-gray-700" id="menuToggle">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 移动端菜单 -->
+        <div class="md:hidden hidden bg-white absolute w-full shadow-lg" id="mobileMenu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="#dashboard" class="text-gray-700 hover:text-primary py-2 transition-colors">控制面板</a>
+                <a href="#face-recognition" class="text-gray-700 hover:text-primary py-2 transition-colors">人脸识别</a>
+                <a href="#voice-recognition" class="text-gray-700 hover:text-primary py-2 transition-colors">声纹识别</a>
+                <a href="#settings" class="text-gray-700 hover:text-primary py-2 transition-colors">系统设置</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow pt-20 pb-10">
+        <div class="container mx-auto px-4">
+            <!-- 状态卡片 -->
+            <section id="dashboard" class="mb-10">
+                <h2 class="text-2xl font-bold mb-6 text-dark">门锁状态</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- 门锁状态卡片 -->
+                    <div class="bg-white rounded-xl shadow p-6 card-hover" id="doorStatusCard">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-sm">当前状态</p>
+                                <h3 class="text-2xl font-bold" id="currentDoorStatus">关闭</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center" id="statusIcon">
+                                <i class="fa fa-lock text-2xl text-gray-500"></i>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p class="text-gray-500 text-sm">最后更新</p>
+                            <p class="text-sm font-medium" id="lastUpdated">刚刚</p>
+                        </div>
+                        <div class="mt-4 flex space-x-3">
+                            <button id="openDoorBtn" class="flex-1 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                                <i class="fa fa-unlock mr-2"></i>开门
+                            </button>
+                            <button id="closeDoorBtn" class="flex-1 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                                <i class="fa fa-lock mr-2"></i>关门
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 识别统计卡片 -->
+                    <div class="bg-white rounded-xl shadow p-6 card-hover">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-sm">今日识别次数</p>
+                                <h3 class="text-2xl font-bold" id="recognitionCount">12</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fa fa-user-circle text-2xl text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-primary h-2.5 rounded-full" style="width: 75%"></div>
+                            </div>
+                            <p class="text-gray-500 text-xs mt-1">较昨日 <span class="text-success">+25%</span></p>
+                        </div>
+                    </div>
+
+                    <!-- 授权用户卡片 -->
+                    <div class="bg-white rounded-xl shadow p-6 card-hover">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-sm">授权用户</p>
+                                <h3 class="text-2xl font-bold" id="authorizedUsers">5</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="fa fa-users text-2xl text-success"></i>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-4">
+                            <img src="https://picsum.photos/id/1/40/40" alt="用户头像" class="w-8 h-8 rounded-full border-2 border-white">
+                            <img src="https://picsum.photos/id/2/40/40" alt="用户头像" class="w-8 h-8 rounded-full border-2 border-white">
+                            <img src="https://picsum.photos/id/3/40/40" alt="用户头像" class="w-8 h-8 rounded-full border-2 border-white">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">+2</div>
+                        </div>
+                    </div>
+
+                    <!-- 安全警报卡片 -->
+                    <div class="bg-white rounded-xl shadow p-6 card-hover">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-sm">异常警报</p>
+                                <h3 class="text-2xl font-bold" id="securityAlerts">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                <i class="fa fa-exclamation-triangle text-2xl text-danger"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-500">最近一次: <span class="text-gray-700">无异常</span></p>
+                            <button class="mt-2 w-full py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
+                                查看历史警报
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 人脸识别模块 -->
+            <section id="face-recognition" class="mb-10 bg-white rounded-xl shadow p-6">
+                <h2 class="text-2xl font-bold mb-6 text-dark flex items-center">
+                    <i class="fa fa-id-card text-primary mr-2"></i>人脸识别
+                </h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- 实时识别 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">实时识别</h3>
+                        <div class="relative rounded-lg overflow-hidden border-2 border-gray-200 mb-4">
+                            <video id="faceVideo" width="100%" height="300" autoplay muted playsinline></video>
+                            <canvas id="faceCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+                            <div class="absolute bottom-0 left-0 right-0 bg-dark/50 text-white p-2 text-sm">
+                                <p id="faceStatus">等待识别...</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button id="startFaceRecognitionBtn" class="flex-1 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                                <i class="fa fa-play mr-2"></i>开始识别
+                            </button>
+                            <button id="stopFaceRecognitionBtn" class="flex-1 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors" disabled>
+                                <i class="fa fa-stop mr-2"></i>停止识别
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 人脸注册 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">人脸注册</h3>
+                        <div class="rounded-lg overflow-hidden border-2 border-gray-200 mb-4 flex items-center justify-center h-60 bg-gray-50">
+                            <img id="facePreview" src="https://picsum.photos/400/300" alt="人脸预览" class="max-w-full max-h-full">
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                                <input type="text" id="faceUsername" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                            </div>
+                            <div class="flex space-x-3">
+                                <button id="captureFaceBtn" class="flex-1 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                                    <i class="fa fa-camera mr-2"></i>拍摄照片
+                                </button>
+                                <button id="trainFaceBtn" class="flex-1 py-2 bg-secondary text-white rounded-md hover:bg-secondary/90 transition-colors" disabled>
+                                    <i class="fa fa-save mr-2"></i>注册人脸
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 识别记录 -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold mb-4">最近识别记录</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">时间</th>
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户</th>
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">识别方式</th>
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">情绪状态</th>
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faceLogTable">
+                                <!-- JavaScript将动态填充数据 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 声纹识别模块 -->
+            <section id="voice-recognition" class="mb-10 bg-white rounded-xl shadow p-6">
+                <h2 class="text-2xl font-bold mb-6 text-dark flex items-center">
+                    <i class="fa fa-microphone text-primary mr-2"></i>声纹识别
+                </h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- 语音指令 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">语音指令</h3>
+                        <div class="rounded-lg overflow-hidden border-2 border-gray-200 p-6 flex flex-col items-center justify-center h-60">
+                            <div id="voiceVisualizer" class="w-full h-32 bg-gray-100 rounded-lg mb-4 flex items-end justify-center overflow-hidden">
+                                <!-- 声波纹可视化 -->
+                                <div class="flex items-end space-x-1 h-full">
+                                    <!-- JavaScript将动态填充数据 -->
+                                </div>
+                            </div>
+                            <p id="voiceStatus" class="text-gray-500">点击下方按钮开始录音...</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button id="startVoiceRecognitionBtn" class="flex-1 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                                <i class="fa fa-microphone mr-2"></i>开始录音
+                            </button>
+                            <button id="stopVoiceRecognitionBtn" class="flex-1 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors" disabled>
+                                <i class="fa fa-stop mr-2"></i>停止录音
+                            </button>
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-500">支持的指令：</p>
+                            <ul class="text-sm text-gray-600 list-disc pl-5 mt-1">
+                                <li>"开门"</li>
+                                <li>"关门"</li>
+                                <li>"查看状态"</li>
+                                <li>"锁定门"</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 声纹注册 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">声纹注册</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                                <input type="text" id="voiceUsername" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">语音样本</label>
+                                <div class="rounded-lg overflow-hidden border-2 border-gray-200 p-4 bg-gray-50">
+                                    <p id="voiceSampleText" class="text-gray-600 mb-2">请朗读以下文本：</p>
+                                    <p id="voiceSample" class="font-medium text-dark">"我是[你的名字]，正在注册声纹识别。"</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button id="recordVoiceBtn" class="flex-1 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                                    <i class="fa fa-circle mr-2"></i>开始录音
+                                </button>
+                                <button id="saveVoiceBtn" class="flex-1 py-2 bg-secondary text-white rounded-md hover:bg-secondary/90 transition-colors" disabled>
+                                    <i class="fa fa-save mr-2"></i>保存声纹
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 声纹识别记录 -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold mb-4">最近声纹识别记录</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">时间</th>
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户</th>
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">指令</th>
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">相似度</th>
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                </tr>
+                            </thead>
+                            <tbody id="voiceLogTable">
+                                <!-- JavaScript将动态填充数据 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 系统设置 -->
+            <section id="settings" class="mb-10 bg-white rounded-xl shadow p-6">
+                <h2 class="text-2xl font-bold mb-6 text-dark flex items-center">
+                    <i class="fa fa-cog text-primary mr-2"></i>系统设置
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- 基本设置 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">基本设置</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">设备名称</label>
+                                <input type="text" value="智能门锁Pro" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">识别灵敏度</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="range" min="1" max="10" value="7" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <span class="text-sm font-medium">7</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">自动关门时间</label>
+                                <div class="flex items-center">
+                                    <input type="number" value="30" class="w-16 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                    <span class="ml-2 text-gray-600">秒</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">无人自动关门</label>
+                                <div class="flex items-center">
+                                    <button id="toggleMotionDetection" class="px-4 py-2 bg-success text-white rounded-md hover:bg-success/90 transition-colors flex items-center">
+                                        <i class="fa fa-check mr-2"></i>已启用
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 通知设置 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">通知设置</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">开门通知</label>
+                                    <p class="text-sm text-gray-500">有人成功开门时通知</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">异常访问通知</label>
+                                    <p class="text-sm text-gray-500">检测到异常访问尝试时通知</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">低电量通知</label>
+                                    <p class="text-sm text-gray-500">门锁电池电量低时通知</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">声音提示</label>
+                                    <p class="text-sm text-gray-500">操作时播放声音提示</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 设备信息 -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold mb-4">设备信息</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">系统版本</p>
+                            <p class="font-medium">v1.2.3</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">固件版本</p>
+                            <p class="font-medium">v2.1.0</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">设备ID</p>
+                            <p class="font-medium">SL-20230515-12345</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">IP地址</p>
+                            <p class="font-medium">192.168.1.105</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">电池电量</p>
+                            <div class="flex items-center">
+                                <div class="w-24 bg-gray-200 rounded-full h-2.5 mr-2">
+                                    <div class="bg-success h-2.5 rounded-full" style="width: 85%"></div>
+                                </div>
+                                <span class="font-medium">85%</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">在线状态</p>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-success rounded-full mr-2"></div>
+                                <span class="font-medium">在线</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                        <i class="fa fa-refresh mr-2"></i>重置设置
+                    </button>
+                    <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                        <i class="fa fa-save mr-2"></i>保存设置
+                    </button>
+                    <button class="px-4 py-2 bg-danger text-white rounded-md hover:bg-danger/90 transition-colors">
+                        <i class="fa fa-power-off mr-2"></i>重启设备
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa fa-lock text-primary text-xl"></i>
+                        <span class="text-lg font-bold">智能门锁系统</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mt-1">安全、智能、便捷的家居入口解决方案</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-question-circle"></i> 帮助中心
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-shield"></i> 隐私政策
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-file-text-o"></i> 使用条款
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400 text-sm">
+                &copy; 2023 智能门锁系统. 保留所有权利.
+            </div>
+        </div>
+    </footer>
+
+    <!-- 通知提示 -->
+    <div id="notification" class="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm transform translate-y-20 opacity-0 transition-all duration-300 flex items-start z-50">
+        <div id="notificationIcon" class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
+            <i class="fa fa-info text-primary"></i>
+        </div>
+        <div>
+            <h4 id="notificationTitle" class="font-medium text-dark">通知标题</h4>
+            <p id="notificationMessage" class="text-sm text-gray-600 mt-1">通知内容将显示在这里...</p>
+        </div>
+        <button id="closeNotification" class="ml-4 text-gray-400 hover:text-gray-600">
+            <i class="fa fa-times"></i>
+        </button>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // 全局变量
+        let videoStream = null;
+        let isFaceRecognizing = false;
+        let isVoiceRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isMotionDetectionEnabled = true;
+
+        // DOM加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 移动端菜单切换
+            const menuToggle = document.getElementById('menuToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            menuToggle.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // 导航栏滚动效果
+            const mainNav = document.getElementById('mainNav');
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 10) {
+                    mainNav.classList.add('py-2', 'shadow-lg');
+                    mainNav.classList.remove('py-3', 'shadow-md');
+                } else {
+                    mainNav.classList.add('py-3', 'shadow-md');
+                    mainNav.classList.remove('py-2', 'shadow-lg');
+                }
+            });
+
+            // 模拟数据
+            simulateDoorStatus();
+            loadFaceRecognitionLogs();
+            loadVoiceRecognitionLogs();
+
+            // 人脸识别功能
+            setupFaceRecognition();
+
+            // 声纹识别功能
+            setupVoiceRecognition();
+
+            // 门锁控制
+            setupDoorControl();
+
+            // 无人自动关门功能
+            setupMotionDetection();
+
+            // 通知系统
+            setupNotifications();
+        });
+
+        // 门锁状态模拟
+        function simulateDoorStatus() {
+            const doorStatusCard = document.getElementById('doorStatusCard');
+            const currentDoorStatus = document.getElementById('currentDoorStatus');
+            const statusIcon = document.getElementById('statusIcon');
+            const lastUpdated = document.getElementById('lastUpdated');
+
+            // 初始状态
+            updateDoorStatus('CLOSED');
+
+            // 模拟状态变化
+            setInterval(() => {
+                const randomStatus = ['OPEN', 'CLOSED', 'LOCKED'][Math.floor(Math.random() * 3)];
+                updateDoorStatus(randomStatus);
+            }, 30000);
+        }
+
+        // 更新门锁状态
+        function updateDoorStatus(status) {
+            const doorStatusCard = document.getElementById('doorStatusCard');
+            const currentDoorStatus = document.getElementById('currentDoorStatus');
+            const statusIcon = document.getElementById('statusIcon');
+            const lastUpdated = document.getElementById('lastUpdated');
+            const openDoorBtn = document.getElementById('openDoorBtn');
+            const closeDoorBtn = document.getElementById('closeDoorBtn');
+
+            // 更新状态文本
+            let statusText, iconClass, iconColor, cardBg;
+
+            switch(status) {
+                case 'OPEN':
+                    statusText = '开启';
+                    iconClass = 'fa-unlock';
+                    iconColor = 'text-success';
+                    cardBg = 'bg-green-50';
+                    openDoorBtn.disabled = true;
+                    openDoorBtn.classList.add('bg-gray-300', 'text-gray-500');
+                    openDoorBtn.classList.remove('bg-primary', 'text-white');
+                    closeDoorBtn.disabled = false;
+                    closeDoorBtn.classList.remove('bg-gray-300', 'text-gray-500');
+                    closeDoorBtn.classList.add('bg-primary', 'text-white');
+                    break;
+                case 'CLOSED':
+                    statusText = '关闭';
+                    iconClass = 'fa-lock';
+                    iconColor = 'text-gray-500';
+                    cardBg = 'bg-white';
+                    openDoorBtn.disabled = false;
+                    openDoorBtn.classList.remove('bg-gray-300', 'text-gray-500');
+                    openDoorBtn.classList.add('bg-primary', 'text-white');
+                    closeDoorBtn.disabled = true;
+                    closeDoorBtn.classList.add('bg-gray-300', 'text-gray-500');
+                    closeDoorBtn.classList.remove('bg-primary', 'text-white');
+                    break;
+                case 'LOCKED':
+                    statusText = '锁定';
+                    iconClass = 'fa-lock';
+                    iconColor = 'text-danger';
+                    cardBg = 'bg-red-50';
+                    openDoorBtn.disabled = false;
+                    openDoorBtn.classList.remove('bg-gray-300', 'text-gray-500');
+                    openDoorBtn.classList.add('bg-primary', 'text-white');
+                    closeDoorBtn.disabled = true;
+                    closeDoorBtn.classList.add('bg-gray-300', 'text-gray-500');
+                    closeDoorBtn.classList.remove('bg-primary', 'text-white');
+                    break;
+            }
+
+            currentDoorStatus.textContent = statusText;
+            statusIcon.innerHTML = `<i class="fa ${iconClass} text-2xl ${iconColor}"></i>`;
+            doorStatusCard.className = `rounded-xl shadow p-6 card-hover ${cardBg}`;
+            lastUpdated.textContent = new Date().toLocaleTimeString();
+
+            // 发送状态更新到后端
+            fetch('/api/recognition/set-door-status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status }),
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+        }
+
+        // 人脸识别功能设置
+        function setupFaceRecognition() {
+            const startBtn = document.getElementById('startFaceRecognitionBtn');
+            const stopBtn = document.getElementById('stopFaceRecognitionBtn');
+            const captureBtn = document.getElementById('captureFaceBtn');
+            const trainBtn = document.getElementById('trainFaceBtn');
+            const faceVideo = document.getElementById('faceVideo');
+            const faceCanvas = document.getElementById('faceCanvas');
+            const facePreview = document.getElementById('facePreview');
+            const faceStatus = document.getElementById('faceStatus');
+            const faceUsername = document.getElementById('faceUsername');
+
+            // 访问摄像头
+            function startCamera() {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        videoStream = stream;
+                        faceVideo.srcObject = stream;
+
+                        // 调整Canvas大小与视频一致
+                        faceCanvas.width = faceVideo.videoWidth;
+                        faceCanvas.height = faceVideo.videoHeight;
+                    })
+                    .catch(err => {
+                        console.error("摄像头访问失败:", err);
+                        showNotification("错误", "无法访问摄像头，请确保已授予权限。", "error");
+                    });
+            }
+
+            // 开始人脸识别
+            startBtn.addEventListener('click', function() {
+                if (!videoStream) {
+                    startCamera();
+                }
+
+                isFaceRecognizing = true;
+                startBtn.disabled = true;
+                startBtn.classList.add('bg-gray-300', 'text-gray-500');
+                startBtn.classList.remove('bg-primary', 'text-white');
+                stopBtn.disabled = false;
+                stopBtn.classList.remove('bg-gray-300', 'text-gray-500');
+                stopBtn.classList.add('bg-primary', 'text-white');
+
+                recognizeFaces();
+            });
+
+            // 停止人脸识别
+            stopBtn.addEventListener('click', function() {
+                isFaceRecognizing = false;
+                stopBtn.disabled = true;
+                stopBtn.classList.add('bg-gray-300', 'text-gray-500');
+                stopBtn.classList.remove('bg-primary', 'text-white');
+                startBtn.disabled = false;
+                startBtn.classList.remove('bg-gray-300', 'text-gray-500');
+                startBtn.classList.add('bg-primary', 'text-white');
+
+                // 清除Canvas
+                const ctx = faceCanvas.getContext('2d');
+                ctx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+                faceStatus.textContent = "等待识别...";
+            });
+
+            // 拍摄人脸照片
+            captureBtn.addEventListener('click', function() {
+                if (!videoStream) {
+                    startCamera();
+                    return;
+                }
+
+                const ctx = faceCanvas.getContext('2d');
+                ctx.drawImage(faceVideo, 0, 0, faceCanvas.width, faceCanvas.height);
+
+                // 显示预览
+                facePreview.src = faceCanvas.toDataURL('image/jpeg');
+                facePreview.alt = "拍摄的人脸照片";
+
+                // 启用训练按钮
+                if (faceUsername.value.trim() !== '') {
+                    trainBtn.disabled = false;
+                    trainBtn.classList.remove('bg-gray-300', 'text-gray-500');
+                    trainBtn.classList.add('bg-secondary', 'text-white');
+                }
+
+                showNotification("成功", "人脸照片已拍摄，请输入用户名并保存。", "success");
+            });
+
+            // 训练人脸模型
+            trainBtn.addEventListener('click', function() {
+                const username = faceUsername.value.trim();
+
+                if (!username) {
+                    showNotification("提示", "请输入用户名", "info");
+                    return;
+                }
+
+                // 获取Canvas图像数据
+                const imageData = faceCanvas.toDataURL('image/jpeg');
+
+                // 发送到后端
