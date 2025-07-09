@@ -1,0 +1,9 @@
+modelscope
+addict
+numpy
+datasets
+torch
+Pillow
+simplejson
+sortedcontainers
+soundfile
