@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>识别结果</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            display: flex;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            background-color: #f67892;
+            width: 220px;
+            height: 200vh;
+            padding-top: 20px;
+            color: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            display: block;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .sidebar a:hover {
+            background-color: #e25479;
+        }
+
+        /* 主要内容区域 */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .status {
+            margin-bottom: 2rem;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            color: #444;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #f67892;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #e25479;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <a href="#">首页</a>
+        <a href="#">活动日志</a>
+        <a href="#">安全防护</a>
+        <a href="#">设置</a>
+    </div>
+
+    <!-- 主要内容 -->
+    <div class="main-content">
+        <div class="container">
+            <h2>识别完成</h2>
+
+            <div class="status">
+                {% if matched %}
+                    <p class="success">识别到家庭成员：{{ name }}</p>
+                    <p class="success">开门成功</p>
+                {% else %}
+                    <p class="error">识别失败</p>
+                    <p class="error">未识别为家庭成员，无法开门。</p>
+                {% endif %}
+            </div>
+
+            {% if emotion %}
+                <p>当前情绪：{{ emotion }}</p>
+
+                <p id="response">
+                    {% if emotion == "happy" %}
+                        看你笑得这么开心，一定是遇到什么好事啦～
+                    {% elif emotion == "sad" %}
+                        怎么了？{{ name }}看起来有点难过呢，抱抱你，好好休息，有我在陪着你
+                    {% elif emotion == "angry" %}
+                        生气啦？要不要冷静一下跟我讲讲，慢慢说，别一个人扛
+                    {% elif emotion == "surprise" %}
+                        是不是发生什么好事啦？眼睛都亮晶晶的
+                    {% elif emotion == "fear" %}
+                        有点害怕吗？我会保护你，需要我触发报警装置吗？
+                    {% elif emotion == "disgust" %}
+                        看起来你有点嫌弃哦，是不是又看到你不喜欢的人啦
+                    {% else %}
+                        你的情绪我已经记录啦～想说什么都可以告诉我哦
+                    {% endif %}
+                </p>
+            {% endif %}
+
+            <h3>识别记录</h3>
+            <ul>
+                {% for log in logs %}
+                    <li>
+                        {{ log.timestamp|date:"m-d H:i" }} -
+                        {{ log.name|default:"未知" }} -
+                        {{ log.emotion|default:"-" }} -
+                        {% if log.success %}成功{% else %}失败{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <a class="back-btn" href="{% url 'index' %}">返回主页</a>
+        </div>
+    </div>
+
+    <script>
+        // 语音朗读
+        const emotion = "{{ emotion }}";
+        const speechText = document.getElementById("response")?.innerText;
+
+        if (speechText && 'speechSynthesis' in window) {
+            const utter = new SpeechSynthesisUtterance(speechText);
+            utter.lang = 'zh-CN';
+            utter.pitch = 1;
+            utter.rate = 1;
+            window.speechSynthesis.speak(utter);
+        }
+    </script>
+</body>
+</html>
