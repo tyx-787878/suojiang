@@ -11,7 +11,7 @@ from io import BytesIO
 import torch
 from modelscope.pipelines import pipeline
 from django.http import JsonResponse
-from modelscope.preprocessors import AudioBrainPreprocessor
+# from modelscope.preprocessors import AudioBrainPreprocessor
 
 import librosa
 import soundfile as sf
@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)  # 获取当前模块日志器
 
 #  # 保存原始的torch.load函数
 original_torch_load = torch.load
+
+os.environ['NO_PROXY'] = 'www.modelscope.cn'
 
 def face_recognition(request):
     logger.info("进入人脸识别视图")
@@ -130,12 +132,12 @@ def face_recognition(request):
     return redirect('index')
 
 
-def voice_result(request):
-    result = voice_recognition(request)
-    return render(request, 'lockapp/voice_result.html', {
-        'matched': request.GET.get('matched'),
-        'name': request.GET.get('name')
-    })
+# def voice_result(request):
+#     result = voice_recognition(request)
+#     return render(request, 'lockapp/voice_result.html', {
+#         'matched': request.GET.get('matched'),
+#         'name': request.GET.get('name')
+#     })
 
 
 # # 重新定义torch.load，调用原始函数并强制设置weights_only=False
@@ -161,17 +163,16 @@ def voice_recognition(request):
             print("endpre")
     #替换torch.load为自定义函数
             print("调用模型")
-            # preprocessor = AudioBrainPreprocessor()
+
             torch.load = safe_torch_load
             sv_pipline = pipeline(
                 task='speaker-verification',
                 model='iic/speech_rdino_ecapa_tdnn_sv_zh-cn_3dspeaker_16k',
                 model_revision='v1.0.1',
-                # preprocessor = preprocessor
             )
             print("结束调用")
             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-            # speaker1_a_wav = os.path.join(BASE_DIR, 'voice', 'wo.wav')
+            #speaker1_a_wav = os.path.join(BASE_DIR, 'voice', 'wo.wav')
             speaker1_a_wav = os.path.join(BASE_DIR, 'voice', 'speaker1_a_cn_16k.wav')
     # # 相同说话人语音
             print("开始比较")
@@ -179,6 +180,7 @@ def voice_recognition(request):
             print("speaker1_a_wav"+speaker1_a_wav)
             result = sv_pipline([speaker1_a_wav, speaker1_a_wav])
             print("endsv")
+            # result = {'score': 1.0, 'text': 'yes'}
             similarity = result['score']  # 获取相似度分数
             print("结束比较")
             print(result)
@@ -190,10 +192,12 @@ def voice_recognition(request):
                 'status': 'success',
                 'matched': matched,
                 'username': '我' if matched else None,
-                'similarity': float(similarity)  # 返回相似度供调试
+                'similarity': float(similarity),  # 返回相似度供调试
+                'message': f'识别成功: {str()}'
             })
 
         except Exception as e:
+            print("e"+str(e))
             return JsonResponse({
                 'status': 'error',
                 'message': f'识别失败: {str(e)}'
