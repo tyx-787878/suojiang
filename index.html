@@ -19,7 +19,7 @@
             position: relative;
             overflow: hidden;
         }
-
+        
         /* 背景装饰元素 */
         .bg-decoration {
             position: absolute;
@@ -30,18 +30,18 @@
             filter: blur(30px);
             z-index: -1;
         }
-
+        
         .bg-decoration:nth-child(1) {
             top: -100px;
             right: -100px;
         }
-
+        
         .bg-decoration:nth-child(2) {
             bottom: -100px;
             left: -100px;
             background: rgba(109, 124, 150, 0.1);
         }
-
+        
         /* 门锁图标装饰 */
         .lock-icon {
             width: 100px;
@@ -52,7 +52,7 @@
             align-items: center;
             justify-content: center;
         }
-
+        
         .lock-icon i {
             font-size: 4rem;
             color: #ea88ad;
@@ -60,7 +60,7 @@
             z-index: 1;
             animation: pulse 3s infinite;
         }
-
+        
         .lock-icon::before {
             content: '';
             position: absolute;
@@ -70,17 +70,17 @@
             border-radius: 50%;
             animation: expand 3s infinite;
         }
-
+        
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
-
+        
         @keyframes expand {
             0%, 100% { transform: scale(0.8); opacity: 0.5; }
             50% { transform: scale(1); opacity: 0.8; }
         }
-
+        
         h1 {
             font-size: 2.5rem;
             font-weight: 700;
@@ -90,7 +90,7 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
             position: relative;
         }
-
+        
         h1::after {
             content: '';
             position: absolute;
@@ -101,13 +101,13 @@
             height: 3px;
             background: linear-gradient(90deg, rgba(234,136,173,0) 0%, rgba(234,136,173,1) 50%, rgba(234,136,173,0) 100%);
         }
-
+        
         form {
             width: 100%;
             max-width: 300px;
             position: relative;
         }
-
+        
         button {
             width: 100%;
             padding: 1rem 1.5rem;
@@ -126,17 +126,17 @@
             position: relative;
             overflow: hidden;
         }
-
+        
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(234, 136, 173, 0.6);
             background: linear-gradient(135deg, #e36c99 0%, #ea88ad 100%);
         }
-
+        
         button:active {
             transform: translateY(1px);
         }
-
+        
         button::before {
             content: '';
             position: absolute;
@@ -147,32 +147,32 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
             transition: all 0.6s;
         }
-
+        
         button:hover::before {
             left: 100%;
         }
-
+        
         form + form {
             margin-top: 1.25rem;
         }
-
+        
         button i {
             margin-right: 0.75rem;
             font-size: 1.5rem;
         }
-
+        
         /* 安全状态指示器 */
         .security-status {
             margin-top: 3rem;
             text-align: center;
         }
-
+        
         .security-status p {
             font-size: 0.9rem;
             color: #6d7c96;
             margin: 0;
         }
-
+        
         .status-indicator {
             width: 12px;
             height: 12px;
@@ -182,7 +182,7 @@
             margin-right: 0.5rem;
             animation: blink 2s infinite;
         }
-
+        
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -192,28 +192,31 @@
 <body>
     <div class="bg-decoration"></div>
     <div class="bg-decoration"></div>
-
+    
     <div class="lock-icon">
         <i class="fa fa-lock"></i>
     </div>
-
-<h1>欢迎来到智能门锁系统</h1>
-<form action="{% url 'camera' %}" method="get">
-    <button type="submit">
-        <i class="fa fa-user-circle-o"></i>  <!-- 人脸识别图标 -->
-        人脸识别
-    </button>
-</form>
-<form action="{% url 'voice_recognition' %}" method="get">
-    <button type="submit">
-        <i class="fa fa-microphone"></i>  <!-- 声纹识别图标 -->
-        声纹识别
-    </button>
-</form>
-
+    
+    <h1>欢迎来到智能门锁系统</h1>
+    
+    <form action="{% url 'face_recognition' %}" method="get">
+        <button type="submit">
+            <i class="fa fa-user-circle-o"></i>
+            人脸识别
+        </button>
+    </form>
+    
+    <form action="{% url 'voice_recognition' %}" method="get">
+        <button type="submit">
+            <i class="fa fa-microphone"></i>
+            声纹识别
+        </button>
+    </form>
+    
     <div class="security-status">
         <span class="status-indicator"></span>
         <p>系统安全状态：正常</p>
     </div>
 </body>
 </html>
+    
