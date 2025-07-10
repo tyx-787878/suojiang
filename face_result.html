@@ -141,46 +141,26 @@
                 {% endif %}
             </div>
 
-            {% if matched %}
-                {% if emotion %}
-                    <p>识别到您的情绪：{{ emotion }}</p>
+            {% if emotion %}
+                <p>当前情绪：{{ emotion }}</p>
 
-                    <p id="response">
-                        {% if emotion == "happy" %}
-                            欢迎回家，{{ name }}笑得这么开心，一定是遇到什么好事啦～
-                        {% elif emotion == "sad" %}
-                            怎么了？{{ name }}看起来有点难过呢，抱抱你，好好休息，有我在陪着你
-                        {% elif emotion == "angry" %}
-                            {{ name }}生气啦？要不要冷静一下跟我讲讲，慢慢说，别一个人扛
-                        {% elif emotion == "surprise" %}
-                            是不是发生什么好事啦？{{ name }}的眼睛都亮晶晶的
-                        {% elif emotion == "fear" %}
-                            有点害怕吗？别担心，我会保护你，需要我触发报警装置吗？
-                        {% elif emotion == "disgust" %}
-                            看起来你有点嫌弃哦，是不是又看到你不喜欢的人啦
-                        {% else %}
-                            {{ name }}欢迎回家，你的情绪我已经记录啦～想说什么都可以告诉我哦
-                        {% endif %}
-                    </p>
-                {% endif %}
-            {% else %}
-                <p>识别到您的情绪：{{ emotion }}</p>
-
-                <p id="response">{% if emotion == "happy" %}
-                            识别失败了噢，不过你的微笑很可爱，请联系一下家庭成员开门吧！
-                        {% elif emotion == "sad" %}
-                            很抱歉识别失败！不过你看起来有点难过呢，抱抱你，希望你有美好的一天
-                        {% elif emotion == "angry" %}
-                            识别失败，无法开门，请不要生气，可以跟我说说发生了什么。
-                        {% elif emotion == "surprise" %}
-                            识别失败了，别失望，要不要联系一下其他家庭成员？
-                        {% elif emotion == "fear" %}
-                            识别失败无法开门，你有点害怕吗？别担心，需要我触发报警装置吗？
-                        {% elif emotion == "disgust" %}
-                            识别失败无法开门，看起来你有点嫌弃哦。
-                        {% else %}
-                            很抱歉，识别失败！请确认是否是家庭成员
-                        {% endif %}</p>
+                <p id="response">
+                    {% if emotion == "happy" %}
+                        看你笑得这么开心，一定是遇到什么好事啦～
+                    {% elif emotion == "sad" %}
+                        怎么了？{{ name }}看起来有点难过呢，抱抱你，好好休息，有我在陪着你
+                    {% elif emotion == "angry" %}
+                        生气啦？要不要冷静一下跟我讲讲，慢慢说，别一个人扛
+                    {% elif emotion == "surprise" %}
+                        是不是发生什么好事啦？眼睛都亮晶晶的
+                    {% elif emotion == "fear" %}
+                        有点害怕吗？我会保护你，需要我触发报警装置吗？
+                    {% elif emotion == "disgust" %}
+                        看起来你有点嫌弃哦，是不是又看到你不喜欢的人啦
+                    {% else %}
+                        你的情绪我已经记录啦～想说什么都可以告诉我哦
+                    {% endif %}
+                </p>
             {% endif %}
 
             <h3>识别记录</h3>

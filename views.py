@@ -11,6 +11,8 @@ from io import BytesIO
 import torch
 from modelscope.pipelines import pipeline
 from django.http import JsonResponse
+from pydub import AudioSegment
+from pathlib import Path
 # from modelscope.preprocessors import AudioBrainPreprocessor
 
 import librosa
@@ -18,7 +20,12 @@ import soundfile as sf
 
 import logging
 
-logger = logging.getLogger(__name__)  # 获取当前模块日志器
+ # 获取当前模块日志器
+logger = logging.getLogger(__name__)
+file_handler = logging.FileHandler('app.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(lineno)d')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 #  # 保存原始的torch.load函数
 original_torch_load = torch.load
@@ -139,19 +146,71 @@ def face_recognition(request):
 #         'name': request.GET.get('name')
 #     })
 
+# def process_audio():
+#     try:
+#         # 1. 获取脚本所在目录作为基础路径
+#         base_dir = Path(__file__).parent.absolute()
+#         print(f"脚本所在目录: {base_dir}")
+#
+#         # 2. 构建输入文件路径
+#         input_file = base_dir / "audio_files" / "temp.wav"
+#         print(f"尝试访问文件: {input_file}")
+#
+#         # 3. 检查文件是否存在
+#         if not input_file.exists():
+#             print(f"错误: 文件 {input_file} 不存在!")
+#
+#             # 列出目录内容帮助调试
+#             audio_dir = base_dir / "audio_files"
+#             if audio_dir.exists():
+#                 print(f"目录 '{audio_dir}' 内容:")
+#                 for item in audio_dir.iterdir():
+#                     print(f" - {item.name} ({'文件' if item.is_file() else '目录'})")
+#             else:
+#                 print(f"目录 '{audio_dir}' 不存在")
+#
+#             return
+#
+#         # 4. 处理音频
+#         print("读取音频文件...")
+#         audio = AudioSegment.from_file(str(input_file))
+#
+#         # 5. 设置输出路径
+#         output_dir = base_dir / "processed_audio"
+#         output_dir.mkdir(parents=True, exist_ok=True)
+#         output_file = output_dir / "output.wav"
+#
+#         # 6. 处理音频参数
+#         audio = audio.set_channels(1)  # 单声道
+#         audio = audio.set_frame_rate(16000)  # 16kHz采样率
+#         audio = audio.set_sample_width(2)  # 16位深度
+#
+#         # 7. 导出文件
+#         print(f"导出文件到: {output_file}")
+#         audio.export(str(output_file), format="wav")
+#
+#         print("音频处理完成!")
+#
+#     except FileNotFoundError as e:
+#         print(f"文件未找到错误: {e}")
+#         print("请检查文件路径是否正确")
+#     except Exception as e:
+#         print(f"处理过程中出错: {type(e).__name__} - {e}")
+
 
 # # 重新定义torch.load，调用原始函数并强制设置weights_only=False
 def safe_torch_load(*args, **kwargs):
 #     # 强制覆盖weights_only参数为False（如果有传入则替换，否则添加）
     kwargs['weights_only'] = False
-    print("safe_torch_load调")
+    logger.info("safe_torch_load调")
     return original_torch_load(*args, **kwargs)
 
 def voice_recognition(request):
     if request.method == "POST":
         try:
             audio_file = request.FILES.get("audio")
-            temp_path = os.path.join(os.path.dirname(__file__),'temp',"temp_user_audio.wav")
+
+            temp_path = os.path.join(os.path.dirname(__file__), 'temp', "temp_user_audio.wav")
             print("start")
             with open(temp_path, 'wb+') as f:
                 for chunk in audio_file.chunks():
@@ -161,7 +220,7 @@ def voice_recognition(request):
             # y, sr = librosa.load(temp_path, sr=16000, mono=True)
             # sf.write(temp_path, y, 16000, subtype='PCM_16')
             print("endpre")
-    #替换torch.load为自定义函数
+            # 替换torch.load为自定义函数
             print("调用模型")
 
             torch.load = safe_torch_load
@@ -174,17 +233,17 @@ def voice_recognition(request):
             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
             #speaker1_a_wav = os.path.join(BASE_DIR, 'voice', 'wo.wav')
             speaker1_a_wav = os.path.join(BASE_DIR, 'voice', 'speaker1_a_cn_16k.wav')
-    # # 相同说话人语音
+            # # 相同说话人语音
             print("开始比较")
-            print("temp_path"+temp_path)
-            print("speaker1_a_wav"+speaker1_a_wav)
+            print("temp_path" + temp_path)
+            print("speaker1_a_wav" + speaker1_a_wav)
             result = sv_pipline([speaker1_a_wav, speaker1_a_wav])
             print("endsv")
             # result = {'score': 1.0, 'text': 'yes'}
             similarity = result['score']  # 获取相似度分数
             print("结束比较")
             print(result)
-    # 4. 根据阈值判断是否匹配（阈值可调整，0.7是常见值）
+            # 4. 根据阈值判断是否匹配（阈值可调整，0.7是常见值）
             matched = similarity > 0.7
             os.remove(temp_path)  # 删除临时文件
 
@@ -197,15 +256,15 @@ def voice_recognition(request):
             })
 
         except Exception as e:
-            print("e"+str(e))
+            print("e" + str(e))
             return JsonResponse({
                 'status': 'error',
                 'message': f'识别失败: {str(e)}'
             }, status=500)
-    # # # 不同说话人语音
-    # result = sv_pipline([speaker1_a_wav, speaker2_a_wav])
-    # print(result)
-    # # # 可以自定义得分阈值来进行识别
-    # result = sv_pipline([speaker1_a_wav, speaker2_a_wav], thr=0.198)
-    # print(result)
-    return render(request,'lockapp/voice_recognition.html')
+            # # # 不同说话人语音
+            # result = sv_pipline([speaker1_a_wav, speaker2_a_wav])
+            # print(result)
+            # # # 可以自定义得分阈值来进行识别
+            # result = sv_pipline([speaker1_a_wav, speaker2_a_wav], thr=0.198)
+            # print(result)
+    return render(request, 'lockapp/voice_recognition.html')
